@@ -1,1 +1,1 @@
-# csc216-GP3-002-153
+Developed the backend of a college course scheduler. Added functionality such as adding, removing, and importing courses. Various use cases were provided. Many requirements were needed such as overlapping courses and times. Java.
