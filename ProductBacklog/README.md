@@ -1,1 +1,1 @@
-# csc216-P1-002-153
+Coded the backend of a product backlog manager. Tracked the life cycle of a product and its stages through Task States. Various requirements needed regarding the valid pathways of a product as it traverses the backlog manager.
