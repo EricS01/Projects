@@ -1,0 +1,275 @@
+<!DOCTYPE HTML>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+<title>Add an Ingredient</title>
+<style>
+	label {
+		font-size: 16px;
+	}
+	
+	.header {
+	   background-color: #D2AC47;
+	   height: 100px;
+	   width: 100%;
+	}
+	
+	.heading {
+	   margin: 0 30px 0 30px;
+	   position: relative;
+	   top: 50%;
+	   -ms-transform: translateY(-50%);
+	   transform: translateY(-50%);
+	}
+	
+	.heading a {
+		color: black;
+	}
+	
+	.leftPane {
+		width: 75%;
+		margin-left: 0; 
+		margin-right: auto;
+		height:100px;
+	    float: left;
+	    padding: 20px;
+	}
+	
+	.rightPane {
+		width:25%;
+		margin-left: auto; 
+		margin-right: 0;
+	    height:500px;
+	    float: left;
+	    padding: 20px;
+	}
+	
+	
+	.content {
+	    padding: 20px;
+	}
+	
+	.hrClass {
+    	height: 2px;
+	  	background-color: #000000;
+	  	border: none;
+	}
+	
+	.formHolder {
+		width: 400px;
+		margin: 0 auto;
+	}
+	
+	.ingredient-forms {
+		margin-bottom: 20px;
+	}
+	
+	.ingredient-forms label {
+		display: block;
+	}
+	
+	.ingredient-forms input {
+		display: block;
+	}
+	
+	.error-message {
+		background-color: #FF5733;
+		text-align: center;
+		padding: 7px 5px 7px 5px;
+		font-size: 18px;
+		border: 1px solid black;
+		border-radius: 5px;
+	}
+	
+	.success-message {
+		background-color: #3EE033;
+		text-align: center;
+		padding: 7px 5px 7px 5px;
+		font-size: 18px;
+		border: 1px solid black;
+		border-radius: 5px;
+	}
+	
+	.required {
+		color: red;
+		display: inline-block;
+	}
+	
+	#add-ingredient-btn {
+		display: block;
+		margin-bottom: 15px;
+		font-size: 15px;
+		border-radius: 5px;
+	}
+</style>
+<link rel="stylesheet" href="css/bootstrap.css" />
+<link rel="stylesheet" href="css/app.css" />
+</head>
+<body>
+
+<div class = "header">
+	<h1 class="heading"><a href="/">Coffee Maker</a></h1>
+	<img src="https://cdn-icons-png.flaticon.com/512/5470/5470044.png" height="30" width="30" style ="margin-left: 260px; ">
+</div>
+
+
+<script	src="https://ajax.googleapis.com/ajax/libs/angularjs/1.6.4/angular.js"></script>
+<script>
+	/*<![CDATA[*/ 
+	var app = angular.module('myApp', []);
+	app.controller('populateCtrl', function($scope, $http, $q) {
+
+	// Ingredient input titles in the form "Ingredient n" where n is the new ingredient number
+	$scope.ingredientInputTitles = [];
+	
+	// Ingredients input by the user
+	$scope.ingredients = [];
+	
+	// Number of ingredients input by the user
+	$scope.ingredientsAdded = 0;
+	
+	// Error messages to be displayed to the user
+	$scope.errorMessages = [];
+	
+	//inventory that is recieved from api request
+	$scope.inventory = [];
+	
+	// Represents the new recipe to be created based on user input and the body of the http request made to the APIRecipeController's
+	// creatRecipe endpoint
+	$scope.newIngredient = {};
+	$scope.newIngredient.name;
+	$scope.newIngredient.amount;
+	//$scope.newRecipe.ingredients = [];
+	
+	// Set to true if/when the http request to createRecipe was successful
+	$scope.requestSuccessful = false;
+
+	// Add a string to the ingredient input titles list in the form "Ingredient n" where n is the new ingredient number
+	/*$scope.addIngredientInputTitle = function() {
+		$scope.ingredientInputTitles.push(`Ingredient ${$scope.ingredientInputTitles.length + 1}`);
+	}*/
+	
+	// Checks the user's input for validity
+	// Returns true if the input is valid, false otherwise.
+	// Populates the errorMessages array so error messages are displayed to the user
+	$scope.inputIsValid = function() {
+		// Clear the list of error messages every time this method is called
+		$scope.errorMessages = [];
+		
+		// Tracks whether an error has been discovered
+		errorDetected = false;
+		
+		// A recipe must have a name
+		if ($scope.newIngredient.name == null || $scope.newIngredient.name.length == 0) {
+			$scope.errorMessages.push("Ingredient must have a name.");
+			errorDetected = true;
+		}
+		
+		// A recipe must have a positive price
+		var checkForDecimals = $scope.newIngredient.amount - Math.floor($scope.newIngredient.amount);
+		if ($scope.newIngredient.amount == null || $scope.newIngredient.amount < 0 || checkForDecimals != 0) {
+			$scope.errorMessages.push("Ingredient must have a positive integer amount.");
+			errorDetected = true;
+		}
+				
+		// CITATION - I became aware of JS for loops because of https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Statements/for...in
+		// Each ingredient must have a name and a positive integer amount
+		/*
+		*/
+				
+		return !errorDetected;
+	}
+	
+	$scope.addIngredient = function() {				
+		// Make a request to save the recipe
+		if ($scope.inputIsValid()) {
+			// Add all the ingredients the user submitted to the recipe object being passed in the http request
+			//$scope.newRecipe.ingredients = $scope.ingredients;
+			
+			// Copy the newRecipe property values to a new object to be used when making the POST request
+			// This circumvents an unusual error in which newRecipe's properties don't seem to retain the values
+			// input by the user.
+			InventoryRequestObj = {};
+			InventoryRequestObj.name = $scope.newIngredient.name;
+			InventoryRequestObj.amount = $scope.newIngredient.amount;
+			$scope.inventory.push(InventoryRequestObj);
+					
+			// Make a request to the retrieve inventory items
+			/*$http.get("/api/v1/inventory").then(function(response) {
+						$scope.inventory = response.data;
+						$scope.inventory.push(InventoryRequestObj);
+			
+						// If the request was successful, reset all fields specific to the last request
+						$scope.requestSuccessful = true;
+						$scope.newIngredient.name = null;
+						$scope.newIngredient.price = null;
+						//$scope.newRecipe.ingredients = [];
+						//$scope.ingredients = [];
+						//$scope.ingredientInputTitles = [];
+						//$scope.ingredientsAdded = 0;
+					
+			}); */
+			
+			$http.post("/api/v1/inventory", InventoryRequestObj).then(
+					function(success) {
+						$scope.newIngredient.name = null;
+						$scope.newIngredient.amount = null;
+						$scope.requestSuccessful = true;
+					}, function(rejection) {
+						$scope.requestSuccessful = false;
+						$scope.errorMessages.push(rejection.data.message);
+					});
+			}
+			
+		}
+	
+	});
+	/*]]>*/
+</script>
+
+<div ng-app="myApp" ng-controller="populateCtrl" class="content">
+
+  <div class="leftPane">
+    <h3>Add Ingredient</h3>
+    <hr class = "hrClass">
+  </div>
+  <div class="formHolder">
+  <form>
+  <div class="form-group">
+    <label for="name">Name <p class="required">*</p></label>
+    <input type="text" class="form-control" id="recipeName" placeholder="Enter an Ingredient Name" ng-model="newIngredient.name">
+  </div>
+  <div class="form-group">
+    <label for="amount">Amount <p class="required">*</p></label>
+    <input type="number" class="form-control" id="amount" placeholder="Enter an Ingredient Amount" ng-model="newIngredient.amount">
+  </div>
+  
+  <div class="ingredient-forms" ng-repeat="ingredientTitle in ingredientInputTitles track by $index">
+    <label for="ingredient-title">{{ingredientTitle}}</label>
+  	<input type="text" class="form-control" placeholder="Enter an Ingredient name" ng-model="ingredients[ingredientTitle].name">
+  	<input type="number" class="form-control" placeholder="Enter an Ingredient amount" ng-model="ingredients[ingredientTitle].amount">
+  </div>
+      
+  <!-- ng-click functionality inspired by https://docs.angularjs.org/api/ng/directive/ngClick -->
+  <!--<button id="add-ingredient-btn" ng-click="addIngredientInputTitle()">Add new ingredient</button>  -->
+  
+  <button type="submit" class="btn btn-warning" ng-click="addIngredient()">Add Ingredient</button>
+
+  <div class="error-message-container">
+  	<h3 class="error-message" ng-repeat="errorMessage in errorMessages">{{errorMessage}}</h3>
+  </div>
+  
+  <div class="success-message-container" ng-if="requestSuccessful">
+  	<h3 class="success-message">Ingredient successfully added!</h3>
+  </div>
+  
+ 
+</form>
+</div>
+  
+
+  
+</div>
+
+
+</body>
+</html>

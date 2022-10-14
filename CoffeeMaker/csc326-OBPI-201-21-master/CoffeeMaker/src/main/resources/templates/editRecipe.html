@@ -1,0 +1,119 @@
+<!DOCTYPE HTML>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+<title>Edit a Recipe</title>
+<style>
+.header{
+ background-color: #D2AC47;
+ height: 100px;
+ width: 100%;
+}
+.heading{
+  margin: 0;
+  position: relative;
+  top: 50%;
+  -ms-transform: translateY(-50%);
+  transform: translateY(-50%);
+}
+.leftPane{
+	width: 75%;
+	margin-left: 0; 
+	margin-right: auto;
+	height:100px;
+    float: left;
+    padding: 20px;
+}
+.rightPane{
+	width:25%;
+	margin-left: auto; 
+	margin-right: 0;
+    height:500px;
+    float: left;
+    padding: 20px;
+}
+
+.content {
+    padding: 20px;
+}
+.hrClass {
+    height: 2px;
+  background-color: #000000;
+  border: none;
+}
+.formHolder{
+width: 400px;
+margin: 0 auto;
+}
+.success{
+background-color: #000000;
+border-radius: 5px;
+height: 30px;
+text-align: center;
+font-size: 20px;
+}
+.recipe{
+background-color: #D2AC47;
+border-radius: 5px;
+height: 30px;
+text-align: center;
+font-size: 20px;
+}
+
+
+
+</style>
+<link rel="stylesheet" href="css/bootstrap.css" />
+<link rel="stylesheet" href="css/app.css" />
+</head>
+<body>
+
+<div class = "header">
+<h1 class="heading">Coffee Maker</h1>
+<img src="https://cdn-icons-png.flaticon.com/512/5470/5470044.png" height="30" width="30" style ="margin-left: 230px; ">
+</div>
+
+
+
+
+<div class="content">
+
+  <div class="leftPane">
+    <h3>Available Recipes</h3>
+    <hr class = "hrClass">
+  </div>
+  <div class="formHolder">
+  <form>
+
+  <br>
+  <br>
+  <br>
+  <br>
+  <br>
+  <br>
+  <div class="recipe"><p>Ice Frappe</p></div>
+  <br>
+  <div class="recipe"><p>Pumpkin Spice</p></div>
+  <br>
+  <div class="recipe"><p>Mocha</p></div>
+  <br>
+  <div class="recipe"><p>Vanilla Latte</p></div>
+ 
+ 
+</form>
+<br>
+<br>
+<div class="success" style = "color:white;"><p>Edit</p></div>
+  <ul>
+		<li><a href="editRecipeSuccess.html">Success Example</a></li>
+		<li><a href="editRecipeConc.html">Concurent User Error</a></li>
+		<li> <a href="editRecipeInvalid.html">Invalid unit entry</a></li>
+	</ul>
+</div>
+  
+
+  
+</div>
+
+
+</body>
+</html>

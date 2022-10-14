@@ -1,0 +1,209 @@
+<!DOCTYPE HTML>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+<title>Update Inventory</title>
+<style>
+	label {
+		font-size: 16px;
+	}
+	
+	.header {
+	   background-color: #D2AC47;
+	   height: 100px;
+	   width: 100%;
+	}
+	
+	.heading {
+	   margin: 0 30px 0 30px;
+	   position: relative;
+	   top: 50%;
+	   -ms-transform: translateY(-50%);
+	   transform: translateY(-50%);
+	}
+	
+	.heading a {
+		color: black;
+	}
+	
+	.leftPane {
+		width: 75%;
+		margin-left: 0; 
+		margin-right: auto;
+		height:100px;
+	    float: left;
+	    padding: 20px;
+	}
+	
+	.rightPane {
+		width:25%;
+		margin-left: auto; 
+		margin-right: 0;
+	    height:500px;
+	    float: left;
+	    padding: 20px;
+	}
+	
+	
+	.content {
+	    padding: 20px;
+	}
+	
+	.hrClass {
+    	height: 2px;
+	  	background-color: #000000;
+	  	border: none;
+	}
+	
+	.formHolder {
+		width: 400px;
+		margin: 0 auto;
+	}
+	
+	.ingredient-forms {
+		margin-bottom: 20px;
+	}
+	
+	.ingredient-forms label {
+		display: block;
+	}
+	
+	.ingredient-forms input {
+		display: block;
+	}
+	
+	.error-message {
+		background-color: #FF5733;
+		text-align: center;
+		padding: 7px 5px 7px 5px;
+		font-size: 18px;
+		border: 1px solid black;
+		border-radius: 5px;
+	}
+	
+	.success-message {
+		background-color: #3EE033;
+		text-align: center;
+		padding: 7px 5px 7px 5px;
+		font-size: 18px;
+		border: 1px solid black;
+		border-radius: 5px;
+	}
+	
+	.required {
+		color: red;
+		display: inline-block;
+	}
+	
+	ul {
+ 		 list-style-type: none;
+	}
+	
+	#add-ingredient-btn {
+		display: block;
+		margin-bottom: 15px;
+		font-size: 15px;
+		border-radius: 5px;
+	}
+</style>
+<link rel="stylesheet" href="css/bootstrap.css" />
+<link rel="stylesheet" href="css/app.css" />
+</head>
+<body>
+
+<div class = "header">
+	<h1 class="heading"><a href="/">Coffee Maker</a></h1>
+	<img src="https://cdn-icons-png.flaticon.com/512/5470/5470044.png" height="30" width="30" style ="margin-left: 260px; ">
+</div>
+
+
+<script	src="https://ajax.googleapis.com/ajax/libs/angularjs/1.6.4/angular.js"></script>
+<script>
+
+    /*<![CDATA[*/
+
+    
+		var app = angular.module('myApp', []);
+		app.controller('recipesCtrl', function($scope, $http, $q) {
+			
+			
+			function getInventory() {
+				$http.get("/api/v1/inventory").then(function (response) {
+	  				$scope.inventory = response.data;
+	  				
+	  			});
+			}
+
+
+			$scope.updateInventory = function(){
+			
+				$scope.errorMessages = [];
+								
+				   $http.put("/api/v1/inventory", $scope.inventory)
+		            .then(
+		            function (response) {         		
+		    				$scope.submissionSuccess=true;
+		    				getInventory();
+		            },
+		            function(rejection){
+		                console.error('Error while updating inventory');
+		                $scope.errorMessages.push(rejection.data.message);
+						$scope.submissionSuccess=false;	
+
+		            }
+		        );
+		        getInventory();
+			}
+
+  			getInventory();
+		});
+	/*]]>*/
+	</script>
+
+		<div ng-app="myApp" ng-controller="recipesCtrl">
+		 <div class="leftPane">
+    		<h3>Update Inventory</h3>
+    		<hr class = "hrClass">
+  		</div>
+
+  		<div class="formHolder" >
+  		<div id = "faking">
+		
+			
+		
+			</div>
+			<br /> 
+
+			<div class="ingredient-forms" >
+				
+			
+			
+			
+		<div class="ingredient-forms"  ng-repeat="ingredient in inventory.ingredients track by $index">
+    		<br>  
+    		
+    		
+  			<input type="text" class="form-control" placeholder="{{ingredient.name}}" ng-model="ingredient.name" disabled>
+  			<input type="number" class="form-control" placeholder="{{ingredient.amount}}" ng-model="ingredient.amount">
+  		</div>
+		</div>
+		  </div>
+		<div class = "formHolder">
+		
+		
+		<button type="submit" ng-click="updateInventory()" class="btn btn-warning">Add Ingredients</button>
+		<br>
+		
+		 <div class="error-message-container">
+  			<h3 class="error-message" ng-repeat="errorMessage in errorMessages">{{errorMessage}}</h3>
+  		</div>
+		<div class="success-message-container" ng-if="submissionSuccess">
+				<h3 class="success-message">Inventory updated successfully</h3></div>
+		</div>
+		</div>
+		
+	
+
+
+
+</body>
+</html>

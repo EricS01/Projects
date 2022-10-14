@@ -1,0 +1,308 @@
+<!DOCTYPE HTML>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+<title>Edit a Recipe</title>
+<style>
+	label {
+		font-size: 16px;
+	}
+	
+	.header {
+	   background-color: #D2AC47;
+	   height: 100px;
+	   width: 100%;
+	}
+	
+	.heading {
+	   margin: 0 30px 0 30px;
+	   position: relative;
+	   top: 50%;
+	   -ms-transform: translateY(-50%);
+	   transform: translateY(-50%);
+	}
+	
+	.heading a {
+		color: black;
+	}
+	
+	.leftPane {
+		width: 75%;
+		margin-left: 0; 
+		margin-right: auto;
+		height:100px;
+	    float: left;
+	    padding: 20px;
+	}
+	
+	.rightPane {
+		width:25%;
+		margin-left: auto; 
+		margin-right: 0;
+	    height:500px;
+	    float: left;
+	    padding: 20px;
+	}
+	
+	
+	.content {
+	    padding: 20px;
+	}
+	
+	.hrClass {
+    	height: 2px;
+	  	background-color: #000000;
+	  	border: none;
+	}
+	
+	.formHolder {
+		width: 400px;
+		margin: 0 auto;
+	}
+	
+	.ingredient-forms {
+		margin-bottom: 20px;
+	}
+	
+	.ingredient-forms label {
+		display: block;
+	}
+	
+	.ingredient-forms input {
+		display: block;
+	}
+	
+	.error-message {
+		background-color: #FF5733;
+		text-align: center;
+		padding: 7px 5px 7px 5px;
+		font-size: 18px;
+		border: 1px solid black;
+		border-radius: 5px;
+	}
+	
+	.success-message {
+		background-color: #3EE033;
+		text-align: center;
+		padding: 7px 5px 7px 5px;
+		font-size: 18px;
+		border: 1px solid black;
+		border-radius: 5px;
+	}
+	
+	.required {
+		color: red;
+		display: inline-block;
+	}
+	
+	ul {
+ 		 list-style-type: none;
+	}
+	
+	#add-ingredient-btn {
+		display: block;
+		margin-bottom: 15px;
+		font-size: 15px;
+		border-radius: 5px;
+	}
+</style>
+<link rel="stylesheet" href="css/bootstrap.css" />
+<link rel="stylesheet" href="css/app.css" />
+</head>
+<body>
+
+<div class = "header">
+	<h1 class="heading"><a href="/">Coffee Maker</a></h1>
+	<img src="https://cdn-icons-png.flaticon.com/512/5470/5470044.png" height="30" width="30" style ="margin-left: 260px; ">
+</div>
+
+
+<script	src="https://ajax.googleapis.com/ajax/libs/angularjs/1.6.4/angular.js"></script>
+<script>
+
+    /*<![CDATA[*/
+    	
+    	
+    	function moveForward() {
+    		var x = document.getElementById("testing");
+    		var y = document.getElementById("faking");
+    		var a = document.getElementById("testing2");
+    		var b = document.getElementById("faking2");
+    		  if (x.style.display === "none") {
+    		    x.style.display = "block";
+    		  } else {
+    		    x.style.display = "none";
+    		  }
+    		  
+    		  if (y.style.display === "none") {
+      		    y.style.display = "block";
+      		  } else {
+      		    y.style.display = "none";
+      		  }
+    		  
+    		  if (a.style.display === "none") {
+        		    a.style.display = "block";
+        		  } else {
+        		    a.style.display = "none";
+        		  }
+    		  if (b.style.display === "none") {
+        		    b.style.display = "block";
+        		  } else {
+        		    b.style.display = "none";
+        		  }
+    	}
+    
+		var app = angular.module('myApp', []);
+		app.controller('recipesCtrl', function($scope, $http, $q) {
+			
+			
+			function updateRecipes() {
+				$http.get("/api/v1/recipes").then(function (response) {
+	  				$scope.recipes = response.data;
+	  				
+	  			});
+			}
+			
+			$scope.addIngredient = function() {
+				$scope.newIngredient = {};
+				$scope.newIngredient.name;
+				$scope.newIngredient.amount;
+				$scope.interval.ingredients.push($scope.newIngredient);
+			}
+			
+			$scope.removeIngredient = function() {
+				$scope.index = 0;
+				$scope.elements = ($scope.interval.ingredients).length;
+				for(var i = 0; i < $scope.elements; i++) {
+					if($scope.interval.ingredients[i].name === $scope.deleteIng.name){
+						$scope.index = i;
+					}
+				}
+				$scope.interval.ingredients.splice($scope.index, 1);
+				console.log($scope.index);
+				
+		        $http.delete("/api/v1/ingredients/" + $scope.deleteIng)
+	            .then(
+	            function (response) {
+	            		console.log(response);
+	    				$scope.submissionSuccess=true;	
+	    				
+	                
+	                
+	             	
+	            },
+	            function(rejection){
+	                console.error('Error while deleting recipe');
+	                console.log(rejection);
+	                
+					$scope.submissionSuccess=false;	
+	                
+	                
+	             	
+	            }
+	        );
+			}
+			
+		
+			
+			$scope.updateRecipe = function(){
+			
+				$scope.errorMessages = [];
+				
+				
+				   $http.put("/api/v1/recipes/" + $scope.interval.name, $scope.interval)
+		            .then(
+		            function (response) {
+		            		
+		    				$scope.submissionSuccess=true;
+		    				
+		             	updateRecipes();
+		            },
+		            function(rejection){
+		                console.error('Error while updating recipe');
+		                $scope.errorMessages.push(rejection.data.message);
+		                
+						$scope.submissionSuccess=false;	
+		                
+		                
+		             	// Update recipe list
+				       
+		            }
+		        );
+		        updateRecipes();
+			}
+			
+		
+			
+			
+  			updateRecipes();
+		});
+	/*]]>*/
+	</script>
+
+		<div ng-app="myApp" ng-controller="recipesCtrl">
+		 <div class="leftPane">
+    		<h3>Edit Recipe</h3>
+    		<hr class = "hrClass">
+  		</div>
+
+  		<div class="formHolder" >
+  		<div id = "faking">
+		
+			
+			<div class="ingredient-forms">
+				Select a Recipe: <br />
+				<select class="form-select"  ng-model="interval"
+					ng-options="recipe as recipe.name for recipe in recipes"
+					required="true">
+					<option value="">No Recipe Selected</option>
+				</select>
+			</div>
+			</div>
+			<br /> 
+		
+			
+			
+			<div ng-if="0 >= recipes.length">There are no recipes in the
+				Coffee Maker.</div>
+			
+			
+			<div class="ingredient-forms" >
+				<div class="ingredient-forms">
+				Delete an Ingredient: <br />
+				<select class="form-select"  ng-model="deleteIng"
+					ng-options="ingredient as ingredient.name for ingredient in interval.ingredients"
+					required="true">
+					<option value="">No Ingredient Selected</option>
+				</select>
+			</div>
+			
+			
+			<input type="text" class="form-control" placeholder="Price" disabled>
+			<input type="text" class="form-control" placeholder="No Recipe Selected" ng-model="interval.price">
+		<div class="ingredient-forms"  ng-repeat="ingredient in interval.ingredients track by $index">
+    		<br>
+  			<input type="text" class="form-control" placeholder="{{ingredient.name}}" ng-model="ingredient.name">
+  			<input type="number" class="form-control" placeholder="{{ingredient.amount}}" ng-model="ingredient.amount">
+  		</div>
+		</div>
+		  </div>
+		<div class = "formHolder">
+		
+		<button type="submit" class="btn btn-warning" ng-click="updateRecipe()">Save</button>
+		<button type="submit" ng-click="addIngredient()" class="btn btn-warning">Add Ingredient</button>
+		<br>
+		<button type="submit" ng-click="removeIngredient()" class="btn btn-warning">Delete Ingredient</button>
+		 <div class="error-message-container">
+  			<h3 class="error-message" ng-repeat="errorMessage in errorMessages">{{errorMessage}}</h3>
+  		</div>
+		<div class="success-message-container" ng-if="submissionSuccess">
+				<h3 class="success-message">Recipe updated successfully</h3></div>
+		</div>
+		</div>
+		
+	
+
+
+
+</body>
+</html>
