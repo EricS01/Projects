@@ -24,6 +24,7 @@ import edu.ncsu.csc.CoffeeMaker.services.IngredientService;
  * APIRecipeController.java class by Kai Presler-Marshall and Michelle Lemons.
  *
  * @author Cameron Himes
+ * @author Eric Samue
  */
 @SuppressWarnings ( { "unchecked", "rawtypes" } )
 @RestController
