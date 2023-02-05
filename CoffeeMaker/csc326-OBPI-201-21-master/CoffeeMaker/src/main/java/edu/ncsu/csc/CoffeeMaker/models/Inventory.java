@@ -16,6 +16,7 @@ import javax.persistence.OneToMany;
  * other two pieces used for database support.
  *
  * @author Kai Presler-Marshall
+ * @author Eric Samuel
  */
 @Entity
 public class Inventory extends DomainObject {
