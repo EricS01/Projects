@@ -22,7 +22,7 @@ import edu.ncsu.csc.CoffeeMaker.services.RecipeService;
  * to JSON
  *
  * @author Kai Presler-Marshall
- *
+ * @author Eric Samuel
  */
 @SuppressWarnings ( { "unchecked", "rawtypes" } )
 @RestController
