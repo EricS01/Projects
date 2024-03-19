@@ -1,0 +1,395 @@
+<html xmlns:th="http://www.thymeleaf.org">
+<head th:include="layout :: head(title=~{::title},links=~{})">
+<title>Edit Patient Advocates</title>
+<link rel="stylesheet" href="../static/css/bootstrap.css">
+</head>
+<body th:include="layout :: body" th:with="content=~{::content}">
+	<div th:fragment="content">
+		<script th::inline="javascript">
+			/* Otherwise Thymeleaf tries to parse Javascript as XML and breaks itself sometimes.  Sigh */
+			/*<![CDATA[*/
+			var app = angular.module("editPatientAdvocatesApp", []);
+			app.controller( "editPatientAdvocatesCtrl",
+				function($scope, $http) {
+					function resetForm() {						
+						$scope.err = [];
+						for(var i = 0; i < 13; i++) {
+						    $scope.err[i] = "";
+						}
+						
+						$scope.patientAdvocateBeingEdited = {};	
+					}
+					
+					function checkValidForm(form) {
+						console.log(form);
+					    var valid = true;
+					    if(!form.firstName || form.firstName.length > 20) {
+						    $scope.err[0] = ("first name can not be empty or longer than 20 characters");
+						    valid = false;
+					    } else {
+						    $scope.err[0] = "";
+					    }
+					    if(!form.lastName || form.lastName.length > 30) {
+						    $scope.err[1] = ("last name can not be empty or longer than 30 characters");
+						    valid = false;
+					    } else {
+						    $scope.err[1] = "";
+					    }
+					    if(form.preferredName && form.preferredName.length > 20) {
+						    $scope.err[2] = ("preferred name can be no longer than 20 characters");
+						    valid = false;
+					    } else {
+						    $scope.err[2] = "";
+					    }
+					    if(!form.middleName || form.middleName.length > 20) {
+						    $scope.err[3] = ("middle name can not be empty or longer than 20 characters");
+						    valid = false;
+					    } else {
+						    $scope.err[3] = "";
+					    }
+					    if(!form.email || form.email.length > 30) {
+						    $scope.err[5] = ("email can not be empty or longer than 30 characters");
+						    valid = false;
+					    } else {
+						    $scope.err[5] = "";
+					    }
+					    if(!form.address1 || form.address1.length > 50) {
+						    $scope.err[6] = ("primary address can not be empty or longer than 50 characters");
+						    valid = false;
+					    } else {
+						    $scope.err[6] = "";
+					    }
+					    if(form.address2 && form.address2.length > 50) {
+						    $scope.err[7] = ("secondary address can not be longer than 50 characters");
+						    valid = false;
+					    } else {
+						    $scope.err[7] = "";
+					    }
+					    if(!form.city || form.city.length > 15) {
+						    $scope.err[8] = ("city can not be empty or longer than 15 characters");	
+						    valid = false;
+					    } else {
+						    $scope.err[8] = "";
+					    }
+					    if(!/(^\d{5}$)|(^\d{5}-\d{4}$)/.test(form.zip) ) {
+							$scope.err[9] = ("zipcode must be 5 numbers");
+							valid = false;
+						} else {
+						    $scope.err[9] = "";
+						    }
+					    if(!/(^[0-9]{3}-[0-9]{3}-[0-9]{4}$)/.test(form.phone) || !form.phone) {
+						    $scope.err[10] = ("phone can not be empty and must have correct format (e.g. 123-456-7890)");
+						    valid = false;
+					    } else {
+						    $scope.err[10] = "";
+						}
+					    if(!form.password || form.password.length < 6 || form.password.length > 20) {
+						    $scope.err[11] = ("password can not be empty or shorter than 6 characters or longer than 20 characters");
+						    valid = false;
+					    } else {
+						    $scope.err[11] = "";
+					    }
+					    if(!form.password2 || form.password2.length < 6 || form.password2.length > 20) {
+						    $scope.err[12] = ("second password can not be empty or shorter than 6 characters or longer than 20 characters");
+						    valid = false;
+					    } else {
+						    $scope.err[12] = "";
+					    }
+					    return valid;
+					}
+
+					$scope.getTemplate = function(user) {
+						return 'view';
+					};
+
+					$scope.updatePatientAdvocate = function() {
+                		$scope.errorAdding = "";
+                		$scope.successMessage = "";
+                		
+						if (!checkValidForm($scope.patientAdvocateBeingEdited)) {
+							return;
+						}
+						
+						if ($scope.patientAdvocateBeingEdited.password === $scope.patientAdvocateBeingEdited.password2) {						
+							var url = "/iTrust2/api/v1/patient_advocate/" + $scope.patientAdvocateBeingEdited.username;
+				            $http.put(url, $scope.patientAdvocateBeingEdited).then(
+				            		function (response) {
+				            	  		$scope.loadUsers();
+				                		$scope.successMessage = "Patient Advocate updated successfully.";
+				                		resetForm();
+				              		}, function (rejection) {
+				            	    	$scope.loadUsers();
+				                		$scope.errorAdding = "Could not update Patient Advocate: " + rejection.data.message;
+				                		$scope.successMessage = "";
+				              		});
+						} else {
+	                		$scope.errorAdding = "Passwords do not match!";
+	                		$scope.successMessage = "";
+						}
+					};
+					
+					$scope.editAdvocate = function(user) {
+                		resetForm();
+						$scope.patientAdvocateBeingEdited = user;
+					};
+					
+					$scope.patientAdvocate = {};
+					$scope.patientAdvocateBeingEdited = {};								
+					$scope.advocates = [];
+					$scope.patients = [];
+					
+					$scope.loadUsers = function() {
+						$http.get("/iTrust2/api/v1/patient_advocate").then(
+								function(response) {
+									$scope.advocates = response.data;
+									$scope.message = "";
+								},
+								function(rejection) {
+									$scope.message = "Could not get Patient Advocates";
+								});
+						
+						$http.get("/iTrust2/api/v1/patients").then(
+								function(response) {
+									$scope.patients = response.data;
+									$scope.message = "";
+								},
+								function(rejection) {
+									$scope.message = "Could not get Patients";
+								});
+					}
+					
+					$http.get("/iTrust2/api/v1/state").then(function(response) {
+					    $scope.states = response.data;
+						console.log($scope.states);
+					});
+					
+					$scope.associateAdvocate = function(advocatesUsername){
+						$scope.patientsUsername = $("#selectPatientFor"+ advocatesUsername +" option:selected").val();
+						$scope.association = {};
+						$scope.association['patient'] = $scope.patientsUsername
+						$scope.association['patientAdvocate'] = advocatesUsername;
+						
+						 $http.put("/iTrust2/api/v1/patient_advocate_association", $scope.association).then(
+					              function (response) {
+					            	  $scope.loadUsers();
+					                $scope.successMessageAssociating = "Patient Advocate successfully associated with patient.";
+					                $scope.errorAssociating = "";
+					              }, function (rejection) {
+					            	    $scope.loadUsers();
+					                $scope.errorAssociating = "Could not associate Patient Advocate to patient: " + rejection.data.message;
+					                $scope.successMessageAssociating = "";
+									
+					              });
+						
+					}
+
+					$scope.loadUsers();
+					resetForm();
+				});
+		</script>
+		<div ng-app="editPatientAdvocatesApp"
+			ng-controller="editPatientAdvocatesCtrl">
+			<br/>
+			<div class="container">
+				<div class="row">
+					<div class="col-md-12">
+						<div class="panel panel-primary">
+							<div class="panel-heading">
+								<h3>Admin Manage Patient Advocates</h3>
+							</div>
+							<div class="panel-body">
+							<p style="color: red" ng-model="errorAssociating" id="errP">{{errorAssociating}}</p>                    
+                    <p style="color: green" ng-model="successMessageAssociating"
+														id="success">{{successMessageAssociating}}</p>
+								<table class="table table-bordered">
+									<caption>Patient Advocates List:</caption>
+									<thead>
+										<tr>
+											<th>Username</th>
+											<th>Associate With patient</th>
+											<th>Confirm</th>
+											<th>Edit Advocate</th>
+										</tr>
+									</thead>
+									<tbody>
+										<tr name="userTableRow"
+											ng-repeat="u in advocates | orderBy: 'name'"
+											ng-include="getTemplate(u)" userId={{u.username}} passId={{u.password}}>
+										</tr>
+									</tbody>
+								</table>
+								<script type="text/ng-template" id="view">
+                <td name="usernameCell">{{u.username}}</td>
+				<td name="associateCell">
+					<select name="selectPatient" id="selectPatientFor{{u.username}}">
+  						<option ng-repeat="p in patients" value="{{p.username}}">{{p.username}}</option>
+					</select>
+				</td>
+                <td> 
+                  <div class="row text-center">
+                    <div class="col-md-6">
+                      <input type="button" value="Confirm" class="btn btn-primary" name="associateAdvocateToPatient" ng-click= "associateAdvocate(u.username)"/>	
+					</div>
+                  </div>
+                </td>
+				<td> 
+                  <div class="row text-center">
+                    <div class="col-md-6">
+                      <input type="button" value="Edit" class="btn btn-primary" name="editAdvocate" ng-click="editAdvocate(u)"/>                          
+                    </div>
+                  </div>
+                </td>
+                </script>
+								<br>
+								<style>
+form {
+	width: 400px;
+}
+
+.label {
+	float: right;
+	text-align: left;
+	width: 200px;
+	height: 20px;
+	color: #000000
+}
+
+input[type=text], form > select {
+	float: right;
+	text-align: left;
+	width: 200px;
+	height: 20px
+}
+
+input[type=password] {
+	float: right;
+	text-align: left;
+	width: 200px;
+	height: 20px
+}
+
+.clear {
+	clear: both;
+	height: 0;
+	line-height: 0;
+}
+
+.floatright {
+	float: right;
+}
+</style>
+								<br>
+								<div class="row">
+									<div class="col-md-12">
+										<div class="panel panel-default">
+											<div class="panel-heading ">Edit Advocate</div>
+											<div class="panel-body">
+												<form name="editPatientAdvocate" ng-submit="updatePatientAdvocate()">
+													<table style="width: max-content;">
+														<tr>
+															<td style="text-align: left; padding: 5px"><b>Username:</b></td>
+															<td><input type="text" name="username" id="username"
+																ng-model="patientAdvocateBeingEdited.username" disabled/></td>
+														</tr>
+														<tr>
+															<td style="text-align: left; padding: 5px"><b>First Name:</b></td>
+															<td><input type="text" name="firstName" id="firstName"
+																ng-model="patientAdvocateBeingEdited.firstName" /></td>
+															<td style="color: red;" ng-show="err[0]"> {{err[0]}}</td>
+														</tr>
+														<tr>
+															<td style="text-align: left; padding: 5px"><b>Middle Name:</b></td>
+															<td><input type="text" name="middleName" id="middleName"
+																ng-model="patientAdvocateBeingEdited.middleName" /></td>
+															<td style="color: red;" ng-show="err[3]"> {{err[3]}}</td>
+														</tr>
+														<tr>
+															<td style="text-align: left; padding: 5px"><b>Last Name:</b></td>
+															<td><input type="text" name="lastName" id="lastName"
+																ng-model="patientAdvocateBeingEdited.lastName" /></td>
+															<td style="color: red;" ng-show="err[1]">{{err[1]}}</td>
+														</tr>
+														<tr>
+															<td style="text-align: left; padding: 5px"><b>Preferred
+																	Name:</b></td>
+															<td><input type="text" name="preferredName"
+																id="preferredName" ng-model="patientAdvocateBeingEdited.preferredName" /></td>
+															<td style="color: red;" ng-show="err[2]">{{err[2]}}</td>
+														</tr>
+														<tr>
+															<td style="text-align: left; padding: 5px"><b>Email:</b></td>
+															<td><input type="text" name="email" id="email"
+																ng-model="patientAdvocateBeingEdited.email" /></td>
+															<td style="color: red;" ng-show="err[5]">{{err[5]}}</td>
+														</tr>
+														<tr>
+															<td style="text-align: left; padding: 5px"><b>Password:</b></td>
+															<td><input type="password" name="password1" id="password1"
+																ng-model="patientAdvocateBeingEdited.password" /></td>
+															<td style="color: red;" ng-show="err[11]"> {{err[11]}}</td>
+														</tr>
+														<tr>
+															<td style="text-align: left; padding: 5px"><b>Password (again):</b></td>
+															<td><input type="password" name="password2" id="password2"
+																ng-model="patientAdvocateBeingEdited.password2" /></td>
+															<td style="color: red;" ng-show="err[12]">{{err[12]}}</td>
+														</tr>
+														<tr>
+															<td style="text-align: left; padding: 5px"><b>Address
+																	Line 1:</b></td>
+															<td><input type="text" name="address1" id="address1"
+																value="{{patientForm.address1}}" ng-model="patientAdvocateBeingEdited.address1" /></td>
+															<td style="color: red;" ng-show="err[6]">{{err[6]}}</td>
+														</tr>
+														<tr>
+															<td style="text-align: left; padding: 5px"><b>Address
+																	Line 2:</b></td>
+															<td><input type="text" name="address2" id="address2"
+																ng-model="patientAdvocateBeingEdited.address2" /></td>
+															<td style="color: red;" ng-show="err[7]">{{err[7]}}</td>
+														</tr>
+														<tr>
+															<td style="text-align: left; padding: 5px"><b>City:</b></td>
+															<td><input type="text" name="city" id="city"
+																ng-model="patientAdvocateBeingEdited.city" /></td>
+															<td style="color: red;" ng-show="err[8]">{{err[8]}}</td>
+														</tr>
+														<tr>
+															<td style="text-align: left; padding: 5px"><b>State:</b></td>
+															<td><select name="state" id="state"
+																ng-model="patientAdvocateBeingEdited.state">
+																	<option ng-repeat="st in states">{{st.id}}</option>
+															</select></td>
+														</tr>
+														<tr>
+															<td style="text-align: left; padding: 5px"><b>Zip:</b></td>
+															<td><input type="text" name="zip" id="zip"
+																ng-model="patientAdvocateBeingEdited.zip" /></td>
+															<td style="color: red;" ng-show="err[9]">{{err[9]}}</td>
+														</tr>
+														<tr>
+															<td style="text-align: left; padding: 5px"><b>Phone:</b></td>
+															<td><input type="text" name="phone" id="phone"
+																placeholder="xxx-xxx-xxxx" ng-model="patientAdvocateBeingEdited.phone" /></td>
+															<td style="color: red;" ng-show="err[10]">{{err[10]}}</td>
+														</tr>
+													</table>
+													<input type="submit" id="submit" value="Save Changes"/>
+												</form>
+												<div>
+													<p style="color: red" ng-model="errorAdding" id="errP">{{errorAdding}}</p>
+												</div>
+												<div>
+													<p style="color: green" ng-model="successMessage"
+														id="success">{{successMessage}}</p>
+												</div>
+											</div>
+										</div>
+									</div>
+								</div>
+							</div>
+						</div>
+					</div>
+				</div>
+</body>
+</html>

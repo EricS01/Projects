@@ -1,0 +1,82 @@
+<html xmlns:th="http://www.thymeleaf.org">
+<head th:include="layout :: head(title=~{::title},links=~{})">
+<title>View Patients</title>
+<link rel="stylesheet" href="../static/css/bootstrap.css">
+</head>
+<body th:include="layout :: body" th:with="content=~{::content}">
+	<div th:fragment="content">
+		<script th::inline="javascript">
+			/* Otherwise Thymeleaf tries to parse Javascript as XML and breaks itself sometimes.  Sigh */
+			/*<![CDATA[*/
+			var app = angular.module("viewPatientsApp", []);
+			app.controller("viewPatientsCtrl",
+				function($scope, $http) {
+					$http.get("/iTrust2/api/v1/patient_advocate/associated/").then(
+						function(response) {
+							$scope.associations = response.data;
+							$scope.message = "";
+						},
+						function(rejection) {
+							$scope.message = "Could not get Patients";
+						});
+				    
+				    $scope.viewBilling = function(association) {
+				    	window.location.replace('viewBills/' + association.patient.username);
+				    }
+				    
+				    $scope.viewOfficeVisits = function(association) {
+				    	window.location.replace('viewOfficeVisits/' + association.patient.username);
+				    }
+				    
+				    $scope.viewPrescriptions = function(association) {
+				    	window.location.replace('viewPrescriptions/' + association.patient.username);	
+				    }
+				});
+		</script>
+		<div ng-app="viewPatientsApp" ng-controller="viewPatientsCtrl">
+			<br><div class="container">
+				<div class="panel panel-primary">
+					<div class="panel-heading">
+						<h3>Patients</h3>
+					</div>
+			
+					<div class="panel-body">
+						<table class="table table-bordered">
+							<caption>Associated Patients:</caption>
+							<thead>
+								<tr>
+									<th>Username</th>
+									<th>First Name</th>
+									<th>Last Name</th>
+									<th>View</th>
+								</tr>
+							</thead>
+							<tbody>
+								<tr name="userTableRow"
+									ng-repeat="a in associations | orderBy: 'name'" userId={{a.patientID}}>
+									<td name="usernameCell">{{a.patient.username}}</td>
+				                	<td name="usernameCell">{{a.patient.firstName}}</td>
+				                	<td name="usernameCell">{{a.patient.lastName}}</td>
+				                	<td> 
+					                  	<div class="row text-center">
+					                    	<div class="col-md-4">
+					                      		<input ng-disabled="!a.viewBilling" type="button" value="Bills" class="btn btn-primary" name="viewPatient" ng-click="viewBilling(a)"/>                          
+					                    	</div>
+					                    	<div class="col-md-4">
+					                      		<input ng-disabled="!a.viewOfficeVisits" type="button" value="Office Visits" class="btn btn-primary" name="viewPatient" ng-click="viewOfficeVisits(a)"/>                          
+					                    	</div>
+					                    	<div class="col-md-4">
+					                      		<input ng-disabled="!a.viewPrescriptions" type="button" value="Prescriptions" class="btn btn-primary" name="viewPatient" ng-click="viewPrescriptions(a)"/>                          
+					                    	</div>
+					                  	</div>
+				                	</td>	
+								</tr>
+							</tbody>
+						</table>
+					</div>
+				</div>
+			</div>
+		</div>
+	</div>
+</body>
+</html>

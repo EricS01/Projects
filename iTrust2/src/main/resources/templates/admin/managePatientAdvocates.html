@@ -1,0 +1,263 @@
+<html xmlns:th="http://www.thymeleaf.org">
+<head th:include="layout :: head(title=~{::title},links=~{})">
+<title>Manage Patient Advocates</title>
+<link rel="stylesheet" href="../static/css/bootstrap.css">
+</head>
+<body th:include="layout :: body" th:with="content=~{::content}">
+	<div th:fragment="content">
+		<script th::inline="javascript">
+			/* Otherwise Thymeleaf tries to parse Javascript as XML and breaks itself sometimes.  Sigh */
+			/*<![CDATA[*/
+			var app = angular.module("managePatientAdvocatesApp", []);
+			app.controller( "managePatientAdvocatesCtrl", function($scope, $http) {
+					$scope.errorUpdating = "";
+					$scope.successUpdating = "";
+					$scope.currentPatient = {};
+					$scope.patients = [];
+					$scope.advocates = [];
+					$scope.originalAdvocates = [];
+
+					$scope.loadPatients = function() {
+						$http.get("/iTrust2/api/v1/patients").then(
+								function(response) {
+									$scope.patients = response.data;
+									$scope.message = "";
+									console.log($scope.patients);
+								},
+								function(rejection) {
+									$scope.message = "Could not display patients";
+									$scope.patients = [];
+								});
+					}
+					
+					$scope.loadPatientAdvocates = function() {
+						$http.get("/iTrust2/api/v1/patients/associated/" + $scope.currentPatient).then(
+							function(response) {
+								$scope.advocates = response.data;
+								
+								// Make a deep copy of the original advocates list
+								$scope.originalAdvocates = JSON.parse(JSON.stringify($scope.advocates));
+								$scope.message = "";
+							},
+							function(rejection) {
+								$scope.message = "Could not display advocates";
+							});
+
+					}
+
+					$scope.reset = function() {
+						$scope.advocates = JSON.parse(JSON.stringify($scope.originalAdvocates));
+						$scope.successUpdating = "";
+						$scope.errorUpdating = "";
+					}
+
+					$scope.updateAssociation = function(advocateUsername) {
+						var payloads = $scope.advocates.map(function(condition) {
+							return {
+									"patientAdvocateUsername": condition.patientAdvocate.username,
+									"patientUsername": condition.patient.username,
+									"billing": condition.viewBilling,
+									"prescriptions": condition.viewPrescriptions,
+									"officeVisits": condition.viewOfficeVisits
+							}
+						});
+												
+						$scope.makeRequest(payloads);						
+						$scope.originalAdvocates = JSON.parse(JSON.stringify($scope.advocates));
+					}
+					
+					$scope.makeRequest = function(payloads) {
+						var payload = payloads.shift();
+						if (payload == undefined) {
+							return;
+						}
+						
+						$http.put("/iTrust2/api/v1/update_patient_advocate_association", payload).then(function(response) {								
+							$scope.successUpdating = "Permissions successfully updated!";
+							$scope.errorUpdating = "";
+							$scope.makeRequest(payloads);
+						},
+						function(rejection) {
+							$scope.successUpdating = "";
+			        		$scope.errorUpdating = rejection;
+							$scope.loadPatientAdvocates();
+						});
+					}
+
+					$scope.loadPatients();
+				});
+		</script>
+		<div ng-app="managePatientAdvocatesApp"
+			ng-controller="managePatientAdvocatesCtrl">
+			<div class="container">
+				<br/>
+				<div class="row">
+					<div class="col-md-12">
+						<div class="panel panel-primary">
+							<div class="panel-heading">
+								<h3>Manage Patient Advocates</h3>
+							</div>
+							<div class="panel-body">
+								<label>Select a Patient: </label>
+								<select name="selectPatient" ng-change="loadPatientAdvocates()" ng-model="currentPatient">
+  									<option ng-repeat="p in patients" value="{{p.username}}">{{p.username}}</option>
+								</select>
+								<br/><br/>
+								<table class="table table-bordered">
+									<caption>Patient Advocates List:</caption>
+									<thead>
+										<tr>
+											<th>Username</th>
+											<th>First Name</th>
+											<th>Last Name</th>
+											<th>Prescriptions</th>
+											<th>Billing</th>
+											<th>Office Visits</th>
+										</tr>
+									</thead>
+									
+									<tbody>
+										<tr name="userTableRow"
+											ng-repeat="u in advocates | orderBy: 'name'" userId={{u.username}}>
+											<td>{{u.patientAdvocate.username}}</td>
+											<td>{{u.patientAdvocate.firstName}}</td>
+											<td>{{u.patientAdvocate.lastName}}</td>
+											<td>
+												<label class="switch">
+													<input type="checkbox" ng-model="u.viewPrescriptions">
+												 	<span class="slider round"></span>
+												</label>
+											</td>
+											<td>
+												<label class="switch">
+													<input type="checkbox" ng-model="u.viewBilling">
+												 	<span class="slider round"></span>
+												</label>
+											</td>
+											<td>
+												<label class="switch">
+													<input type="checkbox" ng-model="u.viewOfficeVisits">
+												 	<span class="slider round"></span>
+												</label>
+											</td>
+											
+										</tr>
+									</tbody>
+								</table>
+								<div class="row">
+									<div class="col-md-6">
+										<p style="color: red" ng-model="errorUpdating" id="errP">{{errorUpdating}}</p>                    
+										<p style="color: green" ng-model="successUpdating" id="success">{{successUpdating}}</p>
+									</div>
+									<div class="col-md-2" style="float: right;">
+										<input type="button" value="Reset" class="btn btn-primary"
+											name="loadPermissions" ng-click= "reset()"/>		
+										<input type="button" value="Confirm" class="btn btn-primary"
+											name="loadPermissions" ng-click= "updateAssociation()"/>							
+									</div>
+								</div>
+							</div>
+						</div>
+					</div>
+				</div>
+<style>
+form {
+	width: 400px;
+}
+
+.label {
+	float: right;
+	text-align: left;
+	width: 200px;
+	height: 20px;
+	color: #000000
+}
+
+input[type=text] {
+	float: right;
+	text-align: left;
+	width: 200px;
+	height: 20px
+}
+
+input[type=password] {
+	float: right;
+	text-align: left;
+	width: 200px;
+	height: 20px
+}
+
+.clear {
+	clear: both;
+	height: 0;
+	line-height: 0;
+}
+
+.floatright {
+	float: right;
+}
+
+.switch {
+  position: relative;
+  display: inline-block;
+  width: 60px;
+  height: 34px;
+}
+
+/* Hide default HTML checkbox */
+.switch input {
+  opacity: 0;
+  width: 0;
+  height: 0;
+}
+
+/* The slider */
+.slider {
+  position: absolute;
+  cursor: pointer;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: #ccc;
+  -webkit-transition: .4s;
+  transition: .4s;
+}
+
+.slider:before {
+  position: absolute;
+  content: "";
+  height: 26px;
+  width: 26px;
+  left: 4px;
+  bottom: 4px;
+  background-color: white;
+  -webkit-transition: .4s;
+  transition: .4s;
+}
+
+input:checked + .slider {
+  background-color: #2196F3;
+}
+
+input:focus + .slider {
+  box-shadow: 0 0 1px #2196F3;
+}
+
+input:checked + .slider:before {
+  -webkit-transform: translateX(26px);
+  -ms-transform: translateX(26px);
+  transform: translateX(26px);
+}
+
+/* Rounded sliders */
+.slider.round {
+  border-radius: 34px;
+}
+
+.slider.round:before {
+  border-radius: 50%;
+}
+</style>
+</body>
+</html>
